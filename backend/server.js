@@ -20,7 +20,8 @@ app.use(helmet());
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
     ? [
-        'https://escriba-capítulos.netlify.app',
+        'https://conectorai.netlify.app',
+        'https://pavolker-conectorai.netlify.app',
         'https://seu-site.netlify.app', 
         'https://seu-dominio.com'
       ] 

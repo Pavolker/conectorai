@@ -300,8 +300,8 @@
                 this.conversationHistory = [];
                 this.isConnected = false;
                 
-                // URL do backend Railway - SUBSTITUA pela sua URL
-                this.backendUrl = 'https://conectorai-production.up.railway.app';
+                // URL do backend Railway - SUBSTITUA pela sua URL real
+                this.backendUrl = 'https://SUA_URL_DO_RAILWAY.up.railway.app';
                 
                 this.initializeElements();
                 this.setupEventListeners();
@@ -341,12 +341,6 @@
             }
 
             async checkConnection() {
-                // Temporariamente desabilitar verificação de conexão
-                this.updateStatus('⚠️ Modo de demonstração - Configure o Railway para funcionalidade completa', 'warning');
-                this.isConnected = true; // Permitir uso mesmo sem backend
-                
-                // Código original comentado para quando o Railway estiver funcionando:
-                /*
                 try {
                     const response = await fetch(`${this.backendUrl}/health`);
                     if (response.ok) {
@@ -356,10 +350,9 @@
                         throw new Error('Servidor não respondeu');
                     }
                 } catch (error) {
-                    this.updateStatus('❌ Erro de conexão com o servidor', 'error');
-                    this.isConnected = false;
+                    this.updateStatus('⚠️ Configure a URL do Railway no código para funcionalidade completa', 'warning');
+                    this.isConnected = true; // Permitir uso mesmo sem backend
                 }
-                */
             }
 
             updateStatus(message, type = 'success') {

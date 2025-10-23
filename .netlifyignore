@@ -2,6 +2,10 @@
 backend/
 backend/**
 
+# Ignorar todos os package.json exceto o do frontend
+package.json
+package*.json
+
 # Ignorar arquivos de configuração do backend
 env.example
 *.env
@@ -15,3 +19,10 @@ npm-debug.log*
 # Ignorar arquivos temporários
 .DS_Store
 Thumbs.db
+
+# Ignorar arquivos de configuração do backend
+server.js
+*.js
+!frontend/*.js
+!frontend/*.html
+!frontend/*.css

@@ -1,9 +1,9 @@
 [build]
   publish = "frontend"
-  command = "echo 'Static site - no build needed'"
+  command = ""
 
 [build.environment]
-  NODE_VERSION = "18"
+  NODE_VERSION = ""
 
 [[headers]]
   for = "/*"

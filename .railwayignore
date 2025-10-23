@@ -1,0 +1,13 @@
+# Ignorar tudo exceto a pasta backend
+frontend/
+frontend/**
+netlify.toml
+.netlifyignore
+README.md
+DEPLOY*.md
+MONOREPO.md
+RAILWAY-NETLIFY.md
+env.example
+*.txt
+*.md
+!backend/**

@@ -5,6 +5,7 @@ backend/**
 # Ignorar todos os package.json exceto o do frontend
 package.json
 package*.json
+!frontend/package.json
 
 # Ignorar arquivos de configuração do backend
 env.example

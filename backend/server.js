@@ -22,6 +22,7 @@ app.use(cors({
     ? [
         'https://conectorai.netlify.app',
         'https://pavolker-conectorai.netlify.app',
+        'https://escriba-capitulos.netlify.app',
         'https://seu-site.netlify.app', 
         'https://seu-dominio.com'
       ] 

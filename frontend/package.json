@@ -1,0 +1,20 @@
+{
+  "name": "escriba-capitulos-frontend",
+  "version": "1.0.0",
+  "description": "Frontend para o Escriba de Capítulos - Agente OpenAI",
+  "main": "index.html",
+  "scripts": {
+    "build": "echo 'Static site - no build needed'",
+    "start": "echo 'Static site - no start needed'"
+  },
+  "keywords": [
+    "openai",
+    "gpt-4",
+    "frontend",
+    "static",
+    "escriba",
+    "capitulos"
+  ],
+  "author": "Pavolker",
+  "license": "MIT"
+}

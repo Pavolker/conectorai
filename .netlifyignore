@@ -1,0 +1,17 @@
+# Ignorar pasta backend completamente
+backend/
+backend/**
+
+# Ignorar arquivos de configuração do backend
+env.example
+*.env
+.env*
+
+# Ignorar logs e cache
+*.log
+node_modules/
+npm-debug.log*
+
+# Ignorar arquivos temporários
+.DS_Store
+Thumbs.db

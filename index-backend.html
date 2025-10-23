@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Escriba de Capítulos - Agente OpenAI</title>
+    <meta name="description" content="Agente especializado em redigir capítulos técnicos de relatórios com estrutura completa e fundamentação baseada em dados atualizados.">
+    <meta name="keywords" content="OpenAI, GPT-4, redação técnica, capítulos, relatórios, inteligência artificial">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .chat-container {
+            width: 100%;
+            max-width: 900px;
+            height: 90vh;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f8f9fa;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message-content {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            word-wrap: break-word;
+            line-height: 1.5;
+        }
+
+        .message.user .message-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-bottom-right-radius: 5px;
+        }
+
+        .message.bot .message-content {
+            background: white;
+            color: #333;
+            border: 1px solid #e0e0e0;
+            border-bottom-left-radius: 5px;
+        }
+
+        .message-avatar {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            margin: 0 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            font-size: 14px;
+        }
+
+        .message.user .message-avatar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            order: 2;
+        }
+
+        .message.bot .message-avatar {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        }
+
+        .chat-input-container {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .quick-commands {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .quick-command {
+            padding: 8px 16px;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+
+        .quick-command:hover {
+            transform: translateY(-2px);
+        }
+
+        .quick-command:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .chat-input:focus {
+            border-color: #667eea;
+        }
+
+        .send-button {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+
+        .send-button:hover {
+            transform: translateY(-2px);
+        }
+
+        .send-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status-section {
+            padding: 15px 20px;
+            background: #e8f5e8;
+            border-bottom: 1px solid #d4edda;
+            text-align: center;
+            font-size: 14px;
+            color: #155724;
+        }
+
+        .status-section.error {
+            background: #f8d7da;
+            color: #721c24;
+            border-color: #f5c6cb;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 10px;
+            color: #666;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 10px;
+            background: #f8f9fa;
+            color: #666;
+            font-size: 12px;
+        }
+
+        @media (max-width: 600px) {
+            .chat-container {
+                height: 95vh;
+            }
+            
+            .message-content {
+                max-width: 85%;
+            }
+            
+            .quick-commands {
+                justify-content: flex-start;
+            }
+            
+            .quick-command {
+                font-size: 11px;
+                padding: 6px 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            📝 Escriba de Capítulos - Agente OpenAI
+        </div>
+        
+        <div class="status-section" id="statusSection">
+            ✅ Sistema funcionando - Pronto para usar!
+        </div>
+
+        <div class="chat-messages" id="chatMessages">
+            <div class="message bot">
+                <div class="message-avatar">📝</div>
+                <div class="message-content">
+                    <strong>Olá! Sou o Escriba de Capítulos.</strong><br><br>
+                    Minha missão é redigir capítulos técnicos de relatórios com coerência textual, estrutura argumentativa completa e fundamentação com dados atualizados.<br><br>
+                    <strong>Comandos disponíveis:</strong><br>
+                    • <code>Tema: [título do capítulo]</code> - define o conteúdo principal<br>
+                    • <code>Base de dados: [documentos específicos]</code> - orienta a fonte prioritária<br>
+                    • <code>Formato: Markdown | PDF | DOCX</code> - define formato de entrega<br>
+                    • <code>Foco especial em: [benchmarking, dados quantitativos, legislação]</code><br><br>
+                    Comece digitando sua mensagem abaixo!
+                </div>
+            </div>
+        </div>
+
+        <div class="loading" id="loading">
+            <div>📝 Escriba está redigindo...</div>
+        </div>
+
+        <div class="chat-input-container">
+            <div class="quick-commands">
+                <button class="quick-command" data-command="Tema: ">📝 Definir Tema</button>
+                <button class="quick-command" data-command="Formato: Markdown">📄 Formato Markdown</button>
+                <button class="quick-command" data-command="Foco especial em: dados quantitativos">📊 Dados Quantitativos</button>
+                <button class="quick-command" data-command="Base de dados: documentos fornecidos">📁 Base de Dados</button>
+                <button class="quick-command" data-command="Foco especial em: benchmarking internacional">🌍 Benchmarking</button>
+                <button class="quick-command" data-command="Foco especial em: legislação">⚖️ Legislação</button>
+            </div>
+            <div class="input-row">
+                <input type="text" id="chatInput" class="chat-input" placeholder="Digite sua mensagem ou use os comandos rápidos acima...">
+                <button id="sendButton" class="send-button">Enviar</button>
+            </div>
+        </div>
+
+        <div class="footer">
+            Desenvolvido com ❤️ usando OpenAI GPT-4o | 
+            <a href="https://github.com" target="_blank" style="color: #666;">GitHub</a> | 
+            <a href="https://platform.openai.com" target="_blank" style="color: #666;">OpenAI</a>
+        </div>
+    </div>
+
+    <script>
+        class ChatApp {
+            constructor() {
+                this.conversationHistory = [];
+                this.isConnected = false;
+                
+                this.initializeElements();
+                this.setupEventListeners();
+                this.checkConnection();
+            }
+
+            initializeElements() {
+                this.statusSection = document.getElementById('statusSection');
+                this.chatMessages = document.getElementById('chatMessages');
+                this.chatInput = document.getElementById('chatInput');
+                this.sendButton = document.getElementById('sendButton');
+                this.loading = document.getElementById('loading');
+            }
+
+            setupEventListeners() {
+                this.chatInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        this.sendMessage();
+                    }
+                });
+
+                this.sendButton.addEventListener('click', () => {
+                    this.sendMessage();
+                });
+
+                // Adicionar event listeners para comandos rápidos
+                document.querySelectorAll('.quick-command').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        const command = e.target.getAttribute('data-command');
+                        if (command) {
+                            this.chatInput.value = command;
+                            this.chatInput.focus();
+                        }
+                    });
+                });
+            }
+
+            async checkConnection() {
+                try {
+                    const response = await fetch('/health');
+                    if (response.ok) {
+                        this.updateStatus('✅ Sistema funcionando - Pronto para usar!', 'success');
+                        this.isConnected = true;
+                    } else {
+                        throw new Error('Servidor não respondeu');
+                    }
+                } catch (error) {
+                    this.updateStatus('❌ Erro de conexão com o servidor', 'error');
+                    this.isConnected = false;
+                }
+            }
+
+            updateStatus(message, type = 'success') {
+                this.statusSection.textContent = message;
+                this.statusSection.className = `status-section ${type === 'error' ? 'error' : ''}`;
+            }
+
+            async sendMessage() {
+                const message = this.chatInput.value.trim();
+                if (!message) return;
+
+                if (!this.isConnected) {
+                    this.updateStatus('❌ Sem conexão com o servidor', 'error');
+                    return;
+                }
+
+                // Adicionar mensagem do usuário
+                this.addMessage(message, 'user');
+                this.chatInput.value = '';
+                this.showLoading(true);
+
+                try {
+                    const response = await this.callBackendAPI(message);
+                    this.addMessage(response, 'bot');
+                    this.updateStatus('✅ Sistema funcionando - Pronto para usar!', 'success');
+                } catch (error) {
+                    console.error('Erro ao chamar API:', error);
+                    let errorMessage = 'Desculpe, ocorreu um erro ao processar sua mensagem.';
+                    
+                    if (error.message.includes('429')) {
+                        errorMessage = '⚠️ Limite de requisições excedido. Tente novamente em alguns minutos.';
+                        this.updateStatus('⚠️ Limite de requisições atingido', 'error');
+                    } else if (error.message.includes('402')) {
+                        errorMessage = '💰 Limite de créditos da API excedido. Entre em contato com o administrador.';
+                        this.updateStatus('💰 Limite de créditos excedido', 'error');
+                    } else if (error.message.includes('503')) {
+                        errorMessage = '🔧 Serviço temporariamente indisponível. Tente novamente em alguns minutos.';
+                        this.updateStatus('🔧 Serviço temporariamente indisponível', 'error');
+                    } else {
+                        errorMessage = `❌ Erro: ${error.message}`;
+                        this.updateStatus('❌ Erro de comunicação', 'error');
+                    }
+                    
+                    this.addMessage(errorMessage, 'bot');
+                } finally {
+                    this.showLoading(false);
+                }
+            }
+
+            async callBackendAPI(message) {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message: message,
+                        conversationHistory: this.conversationHistory
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(`Erro ${response.status}: ${errorData.error || response.statusText}`);
+                }
+
+                const data = await response.json();
+                
+                if (!data.success) {
+                    throw new Error(data.error || 'Erro desconhecido');
+                }
+
+                // Atualizar histórico da conversa
+                this.conversationHistory.push(
+                    { role: "user", content: message },
+                    { role: "assistant", content: data.response }
+                );
+                
+                // Manter apenas os últimos 10 pares de mensagens para não exceder limites
+                if (this.conversationHistory.length > 20) {
+                    this.conversationHistory = this.conversationHistory.slice(-20);
+                }
+                
+                return data.response;
+            }
+
+            addMessage(content, sender) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${sender}`;
+                
+                const avatar = document.createElement('div');
+                avatar.className = 'message-avatar';
+                avatar.textContent = sender === 'user' ? '👤' : '📝';
+                
+                const messageContent = document.createElement('div');
+                messageContent.className = 'message-content';
+                messageContent.innerHTML = content.replace(/\n/g, '<br>');
+                
+                messageDiv.appendChild(avatar);
+                messageDiv.appendChild(messageContent);
+                
+                this.chatMessages.appendChild(messageDiv);
+                this.scrollToBottom();
+            }
+
+            showLoading(show) {
+                this.loading.classList.toggle('show', show);
+                this.sendButton.disabled = show;
+            }
+
+            scrollToBottom() {
+                this.chatMessages.scrollTop = this.chatMessages.scrollHeight;
+            }
+        }
+
+        // Inicializar o aplicativo quando a página carregar
+        document.addEventListener('DOMContentLoaded', () => {
+            new ChatApp();
+        });
+    </script>
+</body>
+</html>

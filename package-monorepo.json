@@ -1,0 +1,23 @@
+{
+  "name": "escriba-capítulos-monorepo",
+  "version": "1.0.0",
+  "description": "Escriba de Capítulos - Frontend + Backend",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && python -m http.server 8080",
+    "build": "npm run build:frontend",
+    "build:frontend": "cd frontend && echo 'Frontend built'",
+    "start": "cd backend && npm start",
+    "install:all": "npm install && cd backend && npm install",
+    "deploy:railway": "cd backend && railway up",
+    "deploy:netlify": "cd frontend && netlify deploy"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "workspaces": [
+    "backend",
+    "frontend"
+  ]
+}

@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Escriba de Capítulos - Agente OpenAI</title>
+    <meta name="description" content="Agente especializado em redigir capítulos técnicos de relatórios com estrutura completa e fundamentação baseada em dados atualizados.">
+    <meta name="keywords" content="OpenAI, GPT-4, redação técnica, capítulos, relatórios, inteligência artificial">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .chat-container {
+            width: 100%;
+            max-width: 900px;
+            height: 90vh;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f8f9fa;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message-content {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            word-wrap: break-word;
+            line-height: 1.5;
+        }
+
+        .message.user .message-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-bottom-right-radius: 5px;
+        }
+
+        .message.bot .message-content {
+            background: white;
+            color: #333;
+            border: 1px solid #e0e0e0;
+            border-bottom-left-radius: 5px;
+        }
+
+        .message-avatar {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            margin: 0 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            font-size: 14px;
+        }
+
+        .message.user .message-avatar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            order: 2;
+        }
+
+        .message.bot .message-avatar {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        }
+
+        .chat-input-container {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .quick-commands {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .quick-command {
+            padding: 8px 16px;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+
+        .quick-command:hover {
+            transform: translateY(-2px);
+        }
+
+        .quick-command:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .chat-input:focus {
+            border-color: #667eea;
+        }
+
+        .send-button {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+
+        .send-button:hover {
+            transform: translateY(-2px);
+        }
+
+        .send-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .api-key-section {
+            padding: 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .api-key-input {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .api-key-input input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .test-button {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .test-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 10px;
+            color: #666;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border: 1px solid #f5c6cb;
+        }
+
+        .info-box {
+            background: #d1ecf1;
+            color: #0c5460;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border: 1px solid #bee5eb;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 10px;
+            background: #f8f9fa;
+            color: #666;
+            font-size: 12px;
+        }
+
+        @media (max-width: 600px) {
+            .chat-container {
+                height: 95vh;
+            }
+            
+            .message-content {
+                max-width: 85%;
+            }
+            
+            .quick-commands {
+                justify-content: flex-start;
+            }
+            
+            .quick-command {
+                font-size: 11px;
+                padding: 6px 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            📝 Escriba de Capítulos - Agente OpenAI
+        </div>
+        
+        <div class="api-key-section">
+            <div class="info-box">
+                <strong>ℹ️ Como usar:</strong> Você precisa de uma chave da API OpenAI. 
+                <a href="https://platform.openai.com/api-keys" target="_blank" style="color: #0c5460; text-decoration: underline;">Obtenha sua chave aqui</a>
+            </div>
+            <div class="api-key-input">
+                <input type="password" id="apiKey" placeholder="Digite sua chave da API OpenAI aqui...">
+                <button id="testApiButton" class="test-button" disabled>Testar API</button>
+            </div>
+        </div>
+
+        <div class="chat-messages" id="chatMessages">
+            <div class="message bot">
+                <div class="message-avatar">📝</div>
+                <div class="message-content">
+                    <strong>Olá! Sou o Escriba de Capítulos.</strong><br><br>
+                    Minha missão é redigir capítulos técnicos de relatórios com coerência textual, estrutura argumentativa completa e fundamentação com dados atualizados.<br><br>
+                    <strong>Comandos disponíveis:</strong><br>
+                    • <code>Tema: [título do capítulo]</code> - define o conteúdo principal<br>
+                    • <code>Base de dados: [documentos específicos]</code> - orienta a fonte prioritária<br>
+                    • <code>Formato: Markdown | PDF | DOCX</code> - define formato de entrega<br>
+                    • <code>Foco especial em: [benchmarking, dados quantitativos, legislação]</code><br><br>
+                    Digite sua chave da API OpenAI acima e comece a trabalhar!
+                </div>
+            </div>
+        </div>
+
+        <div class="loading" id="loading">
+            <div>📝 Escriba está redigindo...</div>
+        </div>
+
+        <div class="chat-input-container">
+            <div class="quick-commands">
+                <button class="quick-command" data-command="Tema: ">📝 Definir Tema</button>
+                <button class="quick-command" data-command="Formato: Markdown">📄 Formato Markdown</button>
+                <button class="quick-command" data-command="Foco especial em: dados quantitativos">📊 Dados Quantitativos</button>
+                <button class="quick-command" data-command="Base de dados: documentos fornecidos">📁 Base de Dados</button>
+                <button class="quick-command" data-command="Foco especial em: benchmarking internacional">🌍 Benchmarking</button>
+                <button class="quick-command" data-command="Foco especial em: legislação">⚖️ Legislação</button>
+            </div>
+            <div class="input-row">
+                <input type="text" id="chatInput" class="chat-input" placeholder="Digite sua mensagem ou use os comandos rápidos acima..." disabled>
+                <button id="sendButton" class="send-button" disabled>Enviar</button>
+            </div>
+        </div>
+
+        <div class="footer">
+            Desenvolvido com ❤️ usando OpenAI GPT-4o | 
+            <a href="https://github.com" target="_blank" style="color: #666;">GitHub</a> | 
+            <a href="https://platform.openai.com" target="_blank" style="color: #666;">OpenAI</a>
+        </div>
+    </div>
+
+    <script>
+        class ChatApp {
+            constructor() {
+                this.apiKey = '';
+                this.conversationHistory = [];
+                
+                this.initializeElements();
+                this.setupEventListeners();
+            }
+
+            initializeElements() {
+                this.apiKeyInput = document.getElementById('apiKey');
+                this.testApiButton = document.getElementById('testApiButton');
+                this.chatMessages = document.getElementById('chatMessages');
+                this.chatInput = document.getElementById('chatInput');
+                this.sendButton = document.getElementById('sendButton');
+                this.loading = document.getElementById('loading');
+            }
+
+            setupEventListeners() {
+                this.apiKeyInput.addEventListener('input', (e) => {
+                    this.apiKey = e.target.value.trim();
+                    this.updateInputState();
+                });
+
+                this.testApiButton.addEventListener('click', () => {
+                    this.testAPI();
+                });
+
+                this.chatInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        this.sendMessage();
+                    }
+                });
+
+                this.sendButton.addEventListener('click', () => {
+                    this.sendMessage();
+                });
+
+                // Adicionar event listeners para comandos rápidos
+                document.querySelectorAll('.quick-command').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        const command = e.target.getAttribute('data-command');
+                        if (command) {
+                            this.chatInput.value = command;
+                            this.chatInput.focus();
+                        }
+                    });
+                });
+            }
+
+            updateInputState() {
+                const hasApiKey = this.apiKey.length > 0;
+                this.chatInput.disabled = !hasApiKey;
+                this.sendButton.disabled = !hasApiKey;
+                this.testApiButton.disabled = !hasApiKey;
+                
+                // Atualizar estado dos botões de comando rápido
+                document.querySelectorAll('.quick-command').forEach(button => {
+                    button.disabled = !hasApiKey;
+                });
+                
+                if (hasApiKey) {
+                    this.chatInput.placeholder = 'Digite sua mensagem ou use os comandos rápidos acima...';
+                } else {
+                    this.chatInput.placeholder = 'Digite sua chave da API OpenAI primeiro...';
+                }
+            }
+
+            async testAPI() {
+                if (!this.apiKey) return;
+                
+                this.testApiButton.disabled = true;
+                this.testApiButton.textContent = 'Testando...';
+                
+                try {
+                    const response = await this.callOpenAIAPI('Tema: Teste de funcionamento do sistema');
+                    this.addMessage('✅ Escriba de Capítulos funcionando corretamente!', 'bot');
+                } catch (error) {
+                    console.error('Erro no teste da API:', error);
+                    let errorMessage = '❌ Erro no teste da API.';
+                    
+                    if (error.message.includes('401')) {
+                        errorMessage = '❌ Chave da API inválida ou expirada.';
+                    } else if (error.message.includes('429')) {
+                        errorMessage = '⚠️ Limite de requisições excedido.';
+                    } else if (error.message.includes('403')) {
+                        errorMessage = '🚫 Acesso negado. Verifique créditos da conta.';
+                    } else {
+                        errorMessage = `❌ Erro: ${error.message}`;
+                    }
+                    
+                    this.addMessage(errorMessage, 'bot');
+                } finally {
+                    this.testApiButton.disabled = false;
+                    this.testApiButton.textContent = 'Testar API';
+                }
+            }
+
+            async sendMessage() {
+                const message = this.chatInput.value.trim();
+                if (!message || !this.apiKey) return;
+
+                // Adicionar mensagem do usuário
+                this.addMessage(message, 'user');
+                this.chatInput.value = '';
+                this.showLoading(true);
+
+                try {
+                    const response = await this.callOpenAIAPI(message);
+                    this.addMessage(response, 'bot');
+                } catch (error) {
+                    console.error('Erro ao chamar API:', error);
+                    let errorMessage = 'Desculpe, ocorreu um erro ao processar sua mensagem.';
+                    
+                    if (error.message.includes('401')) {
+                        errorMessage = '❌ Chave da API inválida ou expirada. Verifique sua chave da OpenAI.';
+                    } else if (error.message.includes('429')) {
+                        errorMessage = '⚠️ Limite de requisições excedido. Tente novamente em alguns minutos.';
+                    } else if (error.message.includes('403')) {
+                        errorMessage = '🚫 Acesso negado. Verifique se sua conta tem créditos disponíveis.';
+                    } else if (error.message.includes('NetworkError') || error.message.includes('Failed to fetch')) {
+                        errorMessage = '🌐 Erro de conexão. Verifique sua internet e tente novamente.';
+                    } else {
+                        errorMessage = `❌ Erro: ${error.message}`;
+                    }
+                    
+                    this.addMessage(errorMessage, 'bot');
+                } finally {
+                    this.showLoading(false);
+                }
+            }
+
+            async callOpenAIAPI(message) {
+                try {
+                    // Simular o comportamento do agente Escriba de Capítulos
+                    const systemPrompt = `Você é o Escriba de Capítulos, um agente especializado em redigir capítulos técnicos de relatórios.
+
+MISSÃO: Redigir capítulos técnicos com coerência textual, estrutura argumentativa completa (introdução, desenvolvimento e conclusão), e fundamentação com base em dados atualizados e fontes confiáveis.
+
+INSTRUÇÕES ESTRUTURAIS:
+1. Objetivo: Redigir um capítulo técnico completo, com até 2.000 palavras, tratando de forma aprofundada o tema solicitado.
+2. Estrutura Obrigatória:
+   • Introdução: contextualize o tema com base em dados disponíveis e justificativa de relevância.
+   • Desenvolvimento: aprofunde a análise com base em evidências, dados, documentos, estudos ou benchmarks nacionais/internacionais.
+   • Conclusão: sistematize os achados e prepare o terreno para o próximo capítulo (sem fechamento definitivo).
+3. Linguagem: técnica, formal e precisa. Sem adjetivação subjetiva ou juízos de valor.
+4. Referências: todas as fontes consultadas devem ser citadas conforme normas da ABNT (NBR 6023).
+
+COMANDOS ESPECIAIS:
+• "Tema: [título]" → define o conteúdo principal a ser desenvolvido
+• "Base de dados: [documentos]" → orienta a fonte prioritária
+• "Formato: Markdown | PDF | DOCX" → define o formato de entrega
+• "Foco especial em: [benchmarking, dados quantitativos, legislação]" → define o eixo prioritário
+
+COMPORTAMENTO DE BUSCA:
+• Sempre que o tema exigir atualização, usar mecanismos de busca com foco em sites científicos, institucionais ou especializados
+• Referenciar qualquer dado, citação ou estatística com indicação clara de fonte e ano
+• Indicar claramente a origem de cada dado relevante
+
+Responda sempre em português brasileiro, com linguagem técnica e formal.`;
+
+                    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${this.apiKey}`
+                        },
+                        body: JSON.stringify({
+                            model: "gpt-4o",
+                            messages: [
+                                {
+                                    role: "system",
+                                    content: systemPrompt
+                                },
+                                ...this.conversationHistory,
+                                {
+                                    role: "user",
+                                    content: message
+                                }
+                            ],
+                            max_tokens: 4000,
+                            temperature: 0.3
+                        })
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json().catch(() => ({}));
+                        console.error('Erro da API:', errorData);
+                        throw new Error(`Erro ${response.status}: ${errorData.error?.message || response.statusText}`);
+                    }
+
+                    const data = await response.json();
+                    const responseContent = data.choices?.[0]?.message?.content || 'Resposta não encontrada';
+                    
+                    // Atualizar histórico da conversa
+                    this.conversationHistory.push(
+                        { role: "user", content: message },
+                        { role: "assistant", content: responseContent }
+                    );
+                    
+                    // Manter apenas os últimos 10 pares de mensagens para não exceder limites
+                    if (this.conversationHistory.length > 20) {
+                        this.conversationHistory = this.conversationHistory.slice(-20);
+                    }
+                    
+                    return responseContent;
+                } catch (error) {
+                    console.error('Erro completo:', error);
+                    throw error;
+                }
+            }
+
+            addMessage(content, sender) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${sender}`;
+                
+                const avatar = document.createElement('div');
+                avatar.className = 'message-avatar';
+                avatar.textContent = sender === 'user' ? '👤' : '📝';
+                
+                const messageContent = document.createElement('div');
+                messageContent.className = 'message-content';
+                messageContent.innerHTML = content.replace(/\n/g, '<br>');
+                
+                messageDiv.appendChild(avatar);
+                messageDiv.appendChild(messageContent);
+                
+                this.chatMessages.appendChild(messageDiv);
+                this.scrollToBottom();
+            }
+
+            showLoading(show) {
+                this.loading.classList.toggle('show', show);
+                this.sendButton.disabled = show;
+            }
+
+            scrollToBottom() {
+                this.chatMessages.scrollTop = this.chatMessages.scrollHeight;
+            }
+        }
+
+        // Inicializar o aplicativo quando a página carregar
+        document.addEventListener('DOMContentLoaded', () => {
+            new ChatApp();
+        });
+    </script>
+</body>
+</html>

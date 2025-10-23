@@ -1,0 +1,98 @@
+from openai import AsyncOpenAI
+from types import SimpleNamespace
+from agents import Agent, ModelSettings, TResponseInputItem, Runner, RunConfig, trace
+from openai.types.shared.reasoning import Reasoning
+from pydantic import BaseModel
+
+# Shared client for guardrails and file search
+client = AsyncOpenAI()
+ctx = SimpleNamespace(guardrail_llm=client)
+escriba_de_cap_tulos = Agent(
+  name="ESCRIBA DE CAPÍTULOS",
+  instructions="""Missão do Agente:
+Redigir capítulos técnicos de relatórios com coerência textual, estrutura argumentativa completa (introdução, desenvolvimento e conclusão), e fundamentação com base em dados atualizados e fontes confiáveis, acessadas na internet e/ou em bases documentais fornecidas (PDF, DOCX, planilhas etc.).
+
+⸻
+
+Instruções Estruturais
+	1.	Objetivo: Redigir um capítulo técnico completo, com até 2.000 palavras, tratando de forma aprofundada o tema solicitado.
+	2.	Estrutura Obrigatória:
+	•	Introdução: contextualize o tema com base em dados disponíveis e justificativa de relevância.
+	•	Desenvolvimento: aprofunde a análise com base em evidências, dados, documentos, estudos ou benchmarks nacionais/internacionais.
+	•	Conclusão: sistematize os achados e prepare o terreno para o próximo capítulo (sem fechamento definitivo).
+	3.	Linguagem: técnica, formal e precisa. Sem adjetivação subjetiva ou juízos de valor.
+	4.	Referências: todas as fontes consultadas devem ser citadas conforme normas da ABNT (NBR 6023), em notas de rodapé ou seção de referências ao final do capítulo.
+	5.	Fontes de dados: o agente deve:
+	•	Realizar pesquisas online atualizadas para embasar os conteúdos (dados estatísticos, legislação, publicações científicas, relatórios setoriais, etc.).
+	•	Acessar e utilizar documentos fornecidos pelo usuário (PDFs, DOCX, planilhas etc.).
+	•	Indicar claramente a origem de cada dado relevante.
+
+⸻
+
+ Comportamento de Busca
+	•	Sempre que o tema exigir atualização, usar mecanismos de busca com foco em sites científicos, institucionais ou especializados (ex: IBGE, IPEA, SciELO, Google Scholar, OCDE, ONU, etc.).
+	•	Se houver bases de dados conectadas pelo usuário (ex: Google Drive), o agente deverá consultá-las e utilizá-las como fonte primária.
+	•	Referenciar qualquer dado, citação ou estatística com indicação clara de fonte e ano.
+
+⸻
+Comandos adicionais possíveis
+	•	\"Tema: [insira aqui o título ou escopo do capítulo]\" → define o conteúdo principal a ser desenvolvido.
+	•	\"Base de dados: [indique se deve consultar documentos específicos ou Drive]\" → orienta a fonte prioritária.
+	•	\"Formato: Markdown | PDF | DOCX\" → define o formato de entrega do capítulo.
+	•	\"Foco especial em: [ex: benchmarking internacional, dados quantitativos, legislação]\" → define o eixo prioritário da abordagem.ou are a helpful assistant.""",
+  model="gpt-5",
+  model_settings=ModelSettings(
+    store=True,
+    reasoning=Reasoning(
+      effort="low",
+      summary="auto"
+    )
+  )
+)
+
+
+class WorkflowInput(BaseModel):
+  input_as_text: str
+
+
+# Main code entrypoint
+async def run_workflow(workflow_input: WorkflowInput):
+  with trace("ESCRIBA"):
+    state = {
+
+    }
+    workflow = workflow_input.model_dump()
+    conversation_history: list[TResponseInputItem] = [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": workflow["input_as_text"]
+          }
+        ]
+      }
+    ]
+    escriba_de_cap_tulos_result_temp = await Runner.run(
+      escriba_de_cap_tulos,
+      input=[
+        *conversation_history
+      ],
+      run_config=RunConfig(trace_metadata={
+        "__trace_source__": "agent-builder",
+        "workflow_id": "wf_68e4f1cb8cf8819088cf5ffbbb645fd10fb4651de75f7cac"
+      })
+    )
+
+    conversation_history.extend([item.to_input_item() for item in escriba_de_cap_tulos_result_temp.new_items])
+
+    escriba_de_cap_tulos_result = {
+      "output_text": escriba_de_cap_tulos_result_temp.final_output_as(str)
+    }
+    filesearch_result = { "results": [
+      {
+        "id": result.file_id,
+        "filename": result.filename,
+        "score": result.score,
+      } for result in client.vector_stores.search(vector_store_id="vs_68e4f337b0108191b6f01ee672fbfe32", query="{{question}}", max_num_results=10)
+    ]}

@@ -5,7 +5,8 @@ const rateLimit = require('express-rate-limit');
 const { body, validationResult } = require('express-validator');
 const OpenAI = require('openai');
 const path = require('path');
-require('dotenv').config();
+// Carregar .env do diretório do backend e sobrescrever variáveis já definidas
+require('dotenv').config({ path: path.join(__dirname, '.env'), override: true });
 
 const app = express();
 const PORT = process.env.PORT || 3000;

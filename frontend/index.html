@@ -300,8 +300,10 @@
                 this.conversationHistory = [];
                 this.isConnected = false;
                 
-                // URL do backend Railway
-                this.backendUrl = 'https://escriba-capitulos-backend-production.up.railway.app';
+                // URL do backend (auto-detecta localhost durante desenvolvimento)
+                const defaultBackend = 'https://escriba-capitulos-backend-production.up.railway.app';
+                const isLocal = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+                this.backendUrl = isLocal ? 'http://localhost:3000' : defaultBackend;
                 
                 this.initializeElements();
                 this.setupEventListeners();
